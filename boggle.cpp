@@ -72,6 +72,7 @@ std::pair<std::set<std::string>, std::set<std::string> > parseDict(std::string f
 		}
 	}
 	prefix.insert("");
+	
 	return make_pair(dict, prefix);
 }
 
@@ -82,12 +83,13 @@ std::set<std::string> boggle(const std::set<std::string>& dict, const std::set<s
 	{
 		for(unsigned int j=0;j<board.size();j++)
 		{
-			boggleHelper(dict, prefix, board, "", result, i, j, 0, 1);
-			boggleHelper(dict, prefix, board, "", result, i, j, 1, 0);
-			boggleHelper(dict, prefix, board, "", result, i, j, 1, 1);
+			
+			boggleHelper(dict, prefix, board, "", result, i, j, 0, 1); // left to right 
+			boggleHelper(dict, prefix, board, "", result, i, j, 1, 0); // down 
+
+			boggleHelper(dict, prefix, board, "", result, i, j, 1, 1); // diagonal (down and to the right) 
 		}
 	}
-	
 	return result;
 }
 
@@ -96,4 +98,27 @@ bool boggleHelper(const std::set<std::string>& dict, const std::set<std::string>
 {
 //add your solution here!
 
+	// out of bounds exploration
+	if (r >= board.size() || c >= board[0].size()) return false;
+	
+	word += board[r][c]; // add on next char (exploring!)
+	//std::cout << "word: " << word << std::endl;
+
+	// prune if the current word is not a valid prefix
+	if (prefix.find(word) == prefix.end() && dict.find(word) == dict.end()) {
+		//std::cout << "prune current word, stop exploring" << std::endl;
+		return false;
+	}
+
+	//is a valid prefix, recurse 
+	bool foundLonger = false;
+	if (prefix.find(word) != prefix.end()) {
+		foundLonger = boggleHelper(dict, prefix, board, word, result, r+dr, c+dc, dr, dc);
+	}
+	// current word is the longest possible 
+	if (!foundLonger && dict.find(word) != dict.end()) {
+		result.insert(word);
+		return true;
+	}
+	return foundLonger;
 }
