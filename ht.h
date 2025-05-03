@@ -277,7 +277,7 @@ private:
     HASH_INDEX_T mIndex_;  // index to CAPACITIES
 
     // ADD MORE DATA MEMBERS HERE, AS NECESSARY
-		HASH_INDEX_T elements_ = 0; // how many elements (deleted or not); used to determine if resize is necessary 
+		HASH_INDEX_T elements_; // how many elements (deleted or not); used to determine if resize is necessary 
 		double resizeAlpha_;
 };	
 
@@ -305,6 +305,7 @@ HashTable<K,V,Prober,Hash,KEqual>::HashTable(
 	totalProbes_ = 0;
 	mIndex_ = 0;
 	table_.resize(CAPACITIES[0], nullptr);
+    elements_ = 0;
 }
 
 // To be completed
@@ -352,7 +353,7 @@ void HashTable<K,V,Prober,Hash,KEqual>::insert(const ItemType& p)
 	* @throw std::logic_error If no free location can be found
 	*/
 	// resize if necessary before adding 
-	if ((elements_ * 1.0)/prober_.m_ >= resizeAlpha_) {
+	if ((elements_ * 1.0)/table_.size() >= resizeAlpha_) {
 		resize();
 	}
 
@@ -462,8 +463,6 @@ void HashTable<K,V,Prober,Hash,KEqual>::resize()
 	int prevSize = table_.size();
 	mIndex_++;
 	std::vector<HashItem*> newTable(CAPACITIES[mIndex_], nullptr);
-	// only rehash non-deleted items 
-	
 	for (int i = 0; i < prevSize; i++) {
 		// rehash all non-deleted items 
 		if (this->table_[i] != nullptr && !this->table_[i]->deleted) {
@@ -478,19 +477,19 @@ void HashTable<K,V,Prober,Hash,KEqual>::resize()
 			
 			while(Prober::npos != loc)
 			{
-					if(nullptr == newTable[loc] ) {
-							newIndex = loc;
-							break;
-					}
-					else if(/* Fill me in */
-						newTable[loc]->deleted == false &&
-						kequal_(newTable[loc]->item.first, key)
-					) {
-							newIndex = loc;
-							break;
-					}
-					loc = prober_.next();
-					totalProbes_++;
+                if(nullptr == newTable[loc] ) {
+                    newIndex = loc;
+                    break;
+                }
+                else if(/* Fill me in */
+                    newTable[loc]->deleted == false &&
+                    kequal_(newTable[loc]->item.first, key)
+                ) {
+                    newIndex = loc;
+                    break;
+                }
+                loc = prober_.next();
+                totalProbes_++;
 			}
 
 			newTable[newIndex] = this->table_[i];
